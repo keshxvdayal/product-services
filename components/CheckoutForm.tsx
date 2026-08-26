@@ -184,12 +184,27 @@ export default function CheckoutForm({
         }
       )
 
-      const data = await response.json()
+      const responseText = await response.text()
+
+      let data: any = {}
+
+      try {
+        data = responseText ? JSON.parse(responseText) : {}
+      } catch {
+        console.error(
+          'Invalid JSON from /api/create-checkout:',
+          responseText
+        )
+
+        throw new Error(
+          `Checkout server returned an invalid response (${response.status}).`
+        )
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(
           data.error ||
-            'We could not create your checkout. Please try again.'
+            `We could not create your checkout (${response.status}). Please try again.`
         )
       }
 
@@ -268,8 +283,25 @@ export default function CheckoutForm({
               }
             )
 
-            const verification =
-              await verificationResponse.json()
+            const verificationText =
+              await verificationResponse.text()
+
+            let verification: any = {}
+
+            try {
+              verification = verificationText
+                ? JSON.parse(verificationText)
+                : {}
+            } catch {
+              console.error(
+                'Invalid JSON from /api/verify-payment:',
+                verificationText
+              )
+
+              throw new Error(
+                `Payment verification server returned an invalid response (${verificationResponse.status}).`
+              )
+            }
 
             if (
               !verificationResponse.ok ||
@@ -277,7 +309,7 @@ export default function CheckoutForm({
             ) {
               throw new Error(
                 verification.error ||
-                  'Payment verification failed. Please contact support.'
+                  `Payment verification failed (${verificationResponse.status}). Please contact support.`
               )
             }
 
