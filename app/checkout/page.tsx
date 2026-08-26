@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import CheckoutForm from '@/components/CheckoutForm'
-import BuyerActivity from '@/components/BuyerActivity'
+// import BuyerActivity from '@/components/BuyerActivity'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -266,10 +266,10 @@ export default async function CheckoutPage({
                 {/* ====================================================
                     BUYER ACTIVITY
                 ===================================================== */}
-                <BuyerActivity
+                {/* <BuyerActivity
                   productId={productData.id}
                   demo={true}
-                />
+                /> */}
 
               </div>
 
