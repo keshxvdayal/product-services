@@ -55,6 +55,13 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/product') ||
     pathname.startsWith('/checkout') ||
     pathname.startsWith('/payment-success') ||
+    pathname.startsWith('/contact') ||
+    pathname.startsWith('/about') ||
+    pathname.startsWith('/terms') ||
+    pathname.startsWith('/privacy') ||
+    pathname.startsWith('/refund-policy') ||
+    pathname.startsWith('/shipping') ||
+    pathname.startsWith('/api/contact') ||
     pathname.startsWith('/api/create-checkout') ||
     pathname.startsWith('/api/verify-payment') ||
     pathname.startsWith('/auth') ||

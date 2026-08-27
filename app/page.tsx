@@ -47,6 +47,13 @@ export default async function HomePage() {
               >
                 How It Works
               </a>
+              
+              <a
+                href="/contact"
+                className="text-sm font-medium text-gray-700 transition hover:text-gray-900"
+              >
+                Contact
+              </a>
             </nav>
           </div>
         </header>
@@ -236,12 +243,65 @@ export default async function HomePage() {
         </section>
 
         {/* FOOTER */}
-        <footer className="border-t border-slate-800/80 bg-[#060910]">
-          <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
-            <p>© 2026 Zavio. All rights reserved.</p>
-            <p className="text-slate-400">Digital knowledge, delivered instantly.</p>
-          </div>
-        </footer>
+        import Link from "next/link";
+
+<footer className="border-t border-slate-800/80 bg-[#060910]">
+  <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8 md:flex-row md:items-center md:justify-between">
+
+    <p className="text-xs text-slate-500">
+      © 2026 Zavio. All rights reserved.
+    </p>
+
+    <p className="text-xs text-slate-400">
+      Digital knowledge, delivered instantly.
+    </p>
+
+    <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+      <Link
+        href="/about"
+        className="text-slate-400 transition hover:text-white"
+      >
+        About
+      </Link>
+
+      <Link
+        href="/contact"
+        className="text-slate-400 transition hover:text-white"
+      >
+        Contact
+      </Link>
+
+      <Link
+        href="/terms"
+        className="text-slate-400 transition hover:text-white"
+      >
+        Terms & Conditions
+      </Link>
+
+      <Link
+        href="/privacy"
+        className="text-slate-400 transition hover:text-white"
+      >
+        Privacy Policy
+      </Link>
+
+      <Link
+        href="/refund-policy"
+        className="text-slate-400 transition hover:text-white"
+      >
+        Refund Policy
+      </Link>
+
+      <Link
+        href="/shipping"
+        className="text-slate-400 transition hover:text-white"
+      >
+        Shipping & Delivery
+      </Link>
+    </nav>
+
+  </div>
+</footer>
       </div>
     </main>
   )
