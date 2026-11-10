@@ -13,18 +13,18 @@ export default function BookCard({ book, country }: { book: Book; country: strin
     <article className="group flex flex-col overflow-hidden rounded-[28px] border-2 border-ink bg-white shadow-sticker-lg transition duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_0_0_#1A1238]">
       <Link
         href={`/products/${book.slug}`}
-        className="relative flex justify-center overflow-hidden border-b-2 border-ink px-8 pt-8"
+        className="relative flex h-56 justify-center overflow-hidden border-b-2 border-ink px-6 pt-6 sm:h-64"
         style={{ backgroundColor: book.accentSoft }}
       >
-        <span className="absolute left-5 top-5 z-10 rounded-full border-2 border-ink bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ink">
+        <span className="absolute left-4 top-4 z-10 rounded-full border-2 border-ink bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ink">
           Book {book.number}
         </span>
-        <div className="relative aspect-[921/1316] w-[62%] translate-y-6 overflow-hidden rounded-t-xl shadow-2xl ring-1 ring-black/10 transition duration-500 group-hover:translate-y-3 group-hover:rotate-[-1.5deg]">
+        <div className="relative aspect-[921/1316] w-40 shrink-0 overflow-hidden rounded-t-lg shadow-2xl ring-1 ring-black/10 transition duration-500 group-hover:-translate-y-1 group-hover:rotate-[-1.5deg] sm:w-44">
           <Image
             src={book.cover}
             alt={`${book.title} cover`}
             fill
-            sizes="(min-width: 1024px) 300px, 60vw"
+            sizes="180px"
             className="object-cover"
           />
         </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, ArrowRight, Globe, Loader2, Lock, Mail, User } from 'lucide-react'
+import { AlertCircle, ArrowRight, Globe, Loader2, Lock, Mail, Pencil, User } from 'lucide-react'
 import { COUNTRIES, POPULAR_COUNT, findCountry } from '@/lib/countries'
 
 declare global {
@@ -89,6 +89,7 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
   const [region, setRegion] = useState<Region>(initialCountry === 'IN' ? 'IN' : initialCountry ? 'INTL' : '')
   const [intlCountry, setIntlCountry] = useState(initialCountry && initialCountry !== 'IN' ? initialCountry : '')
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [step, setStep] = useState<'details' | 'review'>('details')
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -133,7 +134,8 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
     setNotice('')
 
     if (Object.values(errors).some(Boolean)) {
-      const first = errors.email ? 'email' : errors.name ? 'name' : errors.region ? 'region-in' : 'country'
+      setStep('details')
+      const first = errors.region ? 'region-in' : errors.country ? 'country' : errors.email ? 'email' : 'name'
       document.getElementById(first)?.focus()
       return
     }
@@ -143,6 +145,11 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: cleanName, email: cleanEmail }))
     } catch {}
+
+    if (step === 'details') {
+      setStep('review')
+      return
+    }
 
     setStatus('creating')
 
@@ -230,70 +237,9 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
-      {/* EMAIL */}
-      <div>
-        <label htmlFor="email" className="mb-2 block text-sm font-bold text-ink">
-          Email address
-        </label>
-        <div className="relative">
-          <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" size={20} />
-          <input
-            id="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoCapitalize="none"
-            spellCheck={false}
-            placeholder="you@example.com"
-            value={email}
-            disabled={busy}
-            onChange={(e) => setEmail(e.target.value)}
-            onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-            aria-invalid={Boolean(touched.email && errors.email)}
-            aria-describedby="email-help"
-            className={`${fieldBase} ${fieldState('email')}`}
-          />
-        </div>
-        <div id="email-help" className="mt-2 text-sm">
-          {emailSuggestion ? (
-            <button
-              type="button"
-              onClick={() => setEmail(emailSuggestion)}
-              className="rounded-lg bg-sun/30 px-2 py-1 text-ink"
-            >
-              Did you mean <strong>{emailSuggestion}</strong>?
-            </button>
-          ) : touched.email && errors.email ? (
-            <p className="text-red-600">{errors.email}</p>
-          ) : (
-            <p className="text-ink/55">Your PDF is sent here. Double-check the spelling.</p>
-          )}
-        </div>
-      </div>
-
-      {/* NAME */}
-      <div>
-        <label htmlFor="name" className="mb-2 block text-sm font-bold text-ink">
-          Your name
-        </label>
-        <div className="relative">
-          <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" size={20} />
-          <input
-            id="name"
-            type="text"
-            autoComplete="name"
-            placeholder="First and last name"
-            value={name}
-            disabled={busy}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => setTouched((t) => ({ ...t, name: true }))}
-            aria-invalid={Boolean(touched.name && errors.name)}
-            className={`${fieldBase} ${fieldState('name')}`}
-          />
-        </div>
-        {touched.name && errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
-      </div>
-
+      {step === 'details' && (
+        <div className="space-y-6">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-grape">Step 1 of 2 · Country &amp; contact</p>
       {/* REGION */}
       <fieldset>
         <legend className="mb-2 block text-sm font-bold text-ink">Where are you paying from?</legend>
@@ -380,6 +326,107 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
         </div>
       )}
 
+      {/* EMAIL */}
+      <div>
+        <label htmlFor="email" className="mb-2 block text-sm font-bold text-ink">
+          Email address
+        </label>
+        <div className="relative">
+          <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" size={20} />
+          <input
+            id="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder="you@example.com"
+            value={email}
+            disabled={busy}
+            onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+            aria-invalid={Boolean(touched.email && errors.email)}
+            aria-describedby="email-help"
+            className={`${fieldBase} ${fieldState('email')}`}
+          />
+        </div>
+        <div id="email-help" className="mt-2 text-sm">
+          {emailSuggestion ? (
+            <button
+              type="button"
+              onClick={() => setEmail(emailSuggestion)}
+              className="rounded-lg bg-sun/30 px-2 py-1 text-ink"
+            >
+              Did you mean <strong>{emailSuggestion}</strong>?
+            </button>
+          ) : touched.email && errors.email ? (
+            <p className="text-red-600">{errors.email}</p>
+          ) : (
+            <p className="text-ink/55">Your PDF is sent here. Double-check the spelling.</p>
+          )}
+        </div>
+      </div>
+
+      {/* NAME */}
+      <div>
+        <label htmlFor="name" className="mb-2 block text-sm font-bold text-ink">
+          Your name
+        </label>
+        <div className="relative">
+          <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" size={20} />
+          <input
+            id="name"
+            type="text"
+            autoComplete="name"
+            placeholder="First and last name"
+            value={name}
+            disabled={busy}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+            aria-invalid={Boolean(touched.name && errors.name)}
+            className={`${fieldBase} ${fieldState('name')}`}
+          />
+        </div>
+        {touched.name && errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
+      </div>
+
+        </div>
+      )}
+
+      {step === 'review' && (
+        <div className="animate-fade-up space-y-4">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-grape">Step 2 of 2 · Review &amp; pay</p>
+          <dl className="divide-y-2 divide-ink/10 overflow-hidden rounded-2xl border-2 border-ink bg-white">
+            {[
+              { k: 'Country', v: `${findCountry(country)?.flag ?? ''} ${findCountry(country)?.name ?? ''}` },
+              { k: 'Name', v: name.trim() },
+              { k: 'Guide sent to', v: email.trim().toLowerCase() },
+              { k: 'You pay', v: `${priceLabel} ${isIndia ? '(INR)' : '(USD)'}` },
+            ].map((row) => (
+              <div key={row.k} className="flex items-center justify-between gap-4 px-4 py-3">
+                <dt className="text-sm text-ink/60">{row.k}</dt>
+                <dd className={`truncate text-right font-bold text-ink ${row.k === 'You pay' ? 'text-xl' : 'text-sm'}`}>{row.v}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="text-sm text-ink/60">
+            {isIndia ? 'Pay with UPI, cards, net banking or wallets.' : 'Pay with any international Visa, Mastercard or Amex card.'}
+          </p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setStep('details')
+              setError('')
+              setNotice('')
+            }}
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-grape hover:underline disabled:opacity-50"
+          >
+            <Pencil size={14} /> Edit details
+          </button>
+        </div>
+      )}
+
       {/* MESSAGES */}
       {error && (
         <div role="alert" className="flex gap-3 rounded-2xl border-2 border-red-300 bg-red-50 p-4 text-sm text-red-800">
@@ -413,7 +460,13 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
           </>
         ) : (
           <>
-            <Lock size={18} /> {priceLabel ? `Pay ${priceLabel} securely` : 'Continue to payment'}
+            {step === 'details' ? (
+              <>Continue{priceLabel ? ` · ${priceLabel}` : ''}</>
+            ) : (
+              <>
+                <Lock size={18} /> Pay {priceLabel} securely
+              </>
+            )}
             <ArrowRight className="transition group-hover:translate-x-1" size={20} />
           </>
         )}
