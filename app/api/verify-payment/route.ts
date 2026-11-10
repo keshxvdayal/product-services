@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       productTitle: notes.product_title,
       firstName: notes.customer_name,
       email: notes.customer_email,
+      phone: notes.customer_phone,
       country: notes.country,
       amount: Number(order.amount) / 100,
       currency: order.currency,

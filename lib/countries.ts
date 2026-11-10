@@ -47,3 +47,33 @@ export function findCountry(code: string | null | undefined) {
   const upper = code.toUpperCase()
   return COUNTRIES.find((c) => c.code === upper)
 }
+
+export const DIAL_CODES: Record<string, string> = {
+  IN: '91', US: '1', GB: '44', CA: '1', AU: '61', AE: '971', SG: '65', NZ: '64',
+  SA: '966', QA: '974', DE: '49', FR: '33', IT: '39', ES: '34', NL: '31', CH: '41',
+  SE: '46', NO: '47', DK: '45', IE: '353', JP: '81', KR: '82', MY: '60', ID: '62',
+  PH: '63', TH: '66', VN: '84', NP: '977', BD: '880', LK: '94', PK: '92', BR: '55',
+  MX: '52', ZA: '27', NG: '234', KE: '254',
+}
+
+/**
+ * Normalises a phone number to +<countrycode><number>.
+ * Returns '' if it doesn't look valid.
+ */
+export function normalizePhone(raw: string, country: string): string {
+  const trimmed = raw.trim()
+  const digits = trimmed.replace(/\D/g, '')
+  if (!digits) return ''
+  const dial = DIAL_CODES[country]
+
+  let full: string
+  if (trimmed.startsWith('+')) full = digits
+  else if (digits.startsWith('00')) full = digits.slice(2)
+  else if (dial) full = dial + digits.replace(/^0+/, '')
+  else return ''
+
+  if (country === 'IN' && full.startsWith('91')) {
+    return /^91[6-9]\d{9}$/.test(full) ? `+${full}` : ''
+  }
+  return full.length >= 8 && full.length <= 15 ? `+${full}` : ''
+}

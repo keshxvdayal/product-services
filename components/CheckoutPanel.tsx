@@ -77,7 +77,7 @@ export default function CheckoutPanel(props: Props) {
       <div className="order-2 lg:order-1">
         <div className="rounded-3xl border-2 border-ink/10 bg-white/70 p-5 sm:p-8">
           <h2 className="text-xl font-extrabold text-ink">Your details</h2>
-          <p className="mt-1 text-sm text-ink/60">Name, email and country. Then one tap to pay.</p>
+          <p className="mt-1 text-sm text-ink/60">Four quick details. Then one tap to pay.</p>
           <div className="mt-6">
             <CheckoutForm
               slug={props.slug}

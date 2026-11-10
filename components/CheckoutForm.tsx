@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, ArrowRight, Globe, Loader2, Lock, Mail, User } from 'lucide-react'
-import { COUNTRIES, POPULAR_COUNT, findCountry } from '@/lib/countries'
+import { AlertCircle, ArrowRight, Globe, Loader2, Lock, Mail, Phone, User } from 'lucide-react'
+import { COUNTRIES, DIAL_CODES, POPULAR_COUNT, findCountry, normalizePhone } from '@/lib/countries'
 
 declare global {
   interface Window {
@@ -97,6 +97,7 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [country, setCountry] = useState(initialCountry)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [status, setStatus] = useState<Status>('idle')
@@ -104,12 +105,13 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
   const [notice, setNotice] = useState('')
 
   useEffect(() => {
-    let saved: { name?: string; email?: string; country?: string } = {}
+    let saved: { name?: string; email?: string; phone?: string; country?: string } = {}
     try {
       saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
     } catch {}
     if (saved.name) setName(saved.name)
     if (saved.email) setEmail(saved.email)
+    if (saved.phone) setPhone(saved.phone)
     if (!initialCountry) setCountry(findCountry(saved.country)?.code ?? guessCountry())
     // Warm up the payment script so the popup opens instantly.
     loadRazorpay()
@@ -131,26 +133,34 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
         ? 'That email doesn’t look right.'
         : '',
     country: !country ? 'Select your country.' : '',
+    phone: !phone.trim()
+      ? 'Enter your phone number.'
+      : country && !normalizePhone(phone, country)
+        ? country === 'IN'
+          ? 'Enter a valid 10-digit mobile number.'
+          : 'Enter a valid phone number, with country code if needed.'
+        : '',
   }
   const busy = status !== 'idle'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (busy) return
-    setTouched({ name: true, email: true, country: true })
+    setTouched({ name: true, email: true, country: true, phone: true })
     setError('')
     setNotice('')
 
     if (Object.values(errors).some(Boolean)) {
-      const first = errors.name ? 'name' : errors.email ? 'email' : 'country'
+      const first = errors.name ? 'name' : errors.email ? 'email' : errors.country ? 'country' : 'phone'
       document.getElementById(first)?.focus()
       return
     }
 
     const cleanName = name.trim()
     const cleanEmail = email.trim().toLowerCase()
+    const cleanPhone = normalizePhone(phone, country)
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: cleanName, email: cleanEmail, country }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: cleanName, email: cleanEmail, phone: phone.trim(), country }))
     } catch {}
 
     setStatus('creating')
@@ -164,7 +174,7 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, name: cleanName, email: cleanEmail, country }),
+        body: JSON.stringify({ slug, name: cleanName, email: cleanEmail, phone: cleanPhone, country }),
       })
       const data = await readJson(res)
       if (!res.ok || !data.success) {
@@ -181,8 +191,8 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
         name: 'NudgePops',
         description: title,
         image: `${window.location.origin}/brand/icon.png`,
-        prefill: { name: cleanName, email: cleanEmail },
-        readonly: { email: true, name: true },
+        prefill: { name: cleanName, email: cleanEmail, contact: cleanPhone },
+        readonly: { email: true, name: true, contact: true },
         theme: { color: '#4A1FA8' },
         modal: {
           confirm_close: true,
@@ -334,6 +344,41 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
           </select>
         </div>
         {touched.country && errors.country && <p className="mt-2 text-sm text-red-600">{errors.country}</p>}
+      </div>
+
+      {/* PHONE: Razorpay needs a contact number */}
+      <div>
+        <label htmlFor="phone" className="mb-2 block text-sm font-bold text-ink">
+          Phone number <span className="font-normal text-ink/55">(for payment receipts)</span>
+        </label>
+        <div className="relative">
+          <Phone className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" size={20} />
+          {DIAL_CODES[country] && !phone.trim().startsWith('+') && (
+            <span className="pointer-events-none absolute left-11 top-1/2 -translate-y-1/2 text-base font-semibold text-ink/70">
+              +{DIAL_CODES[country]}
+            </span>
+          )}
+          <input
+            id="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel-national"
+            placeholder={country === 'IN' ? '98765 43210' : 'Phone number'}
+            value={phone}
+            disabled={busy}
+            maxLength={20}
+            onChange={(e) => setPhone(e.target.value.replace(/[^\d+\s()-]/g, ''))}
+            onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+            aria-invalid={Boolean(touched.phone && errors.phone)}
+            style={
+              DIAL_CODES[country] && !phone.trim().startsWith('+')
+                ? { paddingLeft: `${3.25 + (DIAL_CODES[country].length + 1) * 0.62}rem` }
+                : undefined
+            }
+            className={`${fieldBase} ${fieldState('phone')}`}
+          />
+        </div>
+        {touched.phone && errors.phone && <p className="mt-2 text-sm text-red-600">{errors.phone}</p>}
       </div>
 
       {/* MESSAGES */}
