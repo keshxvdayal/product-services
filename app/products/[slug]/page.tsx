@@ -27,7 +27,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const country = await getVisitorCountry()
   const isIntl = country !== '' && country !== 'IN'
   const mainPrice = isIntl ? `$${book.priceUsd}` : `₹${book.priceInr}`
-  const otherPrice = isIntl ? `₹${book.priceInr} in India` : `$${book.priceUsd} outside India`
   const other = BOOKS.find((b) => b.slug !== book.slug)
   const buyHref = `/checkout?book=${book.slug}`
 
@@ -35,8 +34,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <main className="pb-24 lg:pb-0">
       {/* TOP */}
       <section className="bg-dots">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[440px_1fr] lg:gap-16 lg:py-16">
-          <div className="lg:sticky lg:top-24 lg:self-start">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[400px_1fr] lg:items-center lg:gap-16 lg:py-14">
+          <div>
             <PreviewGallery cover={book.cover} title={book.title} previews={book.previews} />
           </div>
 
@@ -57,7 +56,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <p className="text-4xl font-extrabold text-ink">{mainPrice}</p>
-                  <p className="mt-1 text-sm text-ink/60">One-time payment · {otherPrice}</p>
+                  <p className="mt-1 text-sm text-ink/60">One-time payment · no subscription</p>
                 </div>
                 <span className="rounded-full bg-mint/25 px-3 py-1 text-xs font-bold text-ink">Instant delivery</span>
               </div>
@@ -74,8 +73,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </ul>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* WHO + WHAT: full width so neither hero column is left empty */}
+      <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-16 sm:px-6 lg:grid-cols-2 lg:gap-16">
             {/* For you if */}
-            <div className="mt-10">
+            <div>
               <h2 className="text-2xl font-extrabold text-ink">This guide is for you if…</h2>
               <ul className="mt-5 space-y-3">
                 {book.forYouIf.map((line) => (
@@ -90,7 +95,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
 
             {/* What you get */}
-            <div className="mt-10">
+            <div>
               <h2 className="text-2xl font-extrabold text-ink">What you get</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {book.includes.map((item) => (
@@ -101,8 +106,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 ))}
               </div>
             </div>
-          </div>
-        </div>
       </section>
 
       {/* RESEARCH */}

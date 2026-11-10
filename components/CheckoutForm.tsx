@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, ArrowRight, Globe, Loader2, Lock, Mail, Pencil, User } from 'lucide-react'
+import { AlertCircle, ArrowRight, Globe, Loader2, Lock, Mail, User } from 'lucide-react'
 import { COUNTRIES, POPULAR_COUNT, findCountry } from '@/lib/countries'
 
 declare global {
@@ -22,7 +22,6 @@ type Props = {
 }
 
 type Status = 'idle' | 'creating' | 'awaiting' | 'verifying'
-type Region = 'IN' | 'INTL' | ''
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 const STORAGE_KEY = 'np-checkout-details'
@@ -51,9 +50,21 @@ const DOMAIN_FIXES: Record<string, string> = {
 function suggestEmail(email: string) {
   const at = email.lastIndexOf('@')
   if (at < 1) return null
-  const domain = email.slice(at + 1).toLowerCase()
-  const fix = DOMAIN_FIXES[domain]
+  const fix = DOMAIN_FIXES[email.slice(at + 1).toLowerCase()]
   return fix ? `${email.slice(0, at)}@${fix}` : null
+}
+
+/** Guess the buyer's country in the browser when the server couldn't. */
+function guessCountry(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+    if (tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta') return 'IN'
+    for (const lang of navigator.languages || [navigator.language]) {
+      const match = findCountry(lang.split('-')[1])
+      if (match && match.code !== 'IN') return match.code
+    }
+  } catch {}
+  return ''
 }
 
 function loadRazorpay() {
@@ -86,32 +97,26 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [region, setRegion] = useState<Region>(initialCountry === 'IN' ? 'IN' : initialCountry ? 'INTL' : '')
-  const [intlCountry, setIntlCountry] = useState(initialCountry && initialCountry !== 'IN' ? initialCountry : '')
+  const [country, setCountry] = useState(initialCountry)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
-  const [step, setStep] = useState<'details' | 'review'>('details')
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
-  // Restore saved details and guess the region from the timezone if needed.
   useEffect(() => {
+    let saved: { name?: string; email?: string; country?: string } = {}
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
-      if (saved.name) setName(saved.name)
-      if (saved.email) setEmail(saved.email)
+      saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
     } catch {}
-    if (!initialCountry) {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
-      setRegion(tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta' ? 'IN' : '')
-    }
+    if (saved.name) setName(saved.name)
+    if (saved.email) setEmail(saved.email)
+    if (!initialCountry) setCountry(findCountry(saved.country)?.code ?? guessCountry())
     // Warm up the payment script so the popup opens instantly.
     loadRazorpay()
   }, [initialCountry])
 
-  const country = region === 'IN' ? 'IN' : region === 'INTL' ? intlCountry : ''
-  const isIndia = region === 'IN'
-  const priceLabel = region === '' ? '' : isIndia ? `₹${priceInr}` : `$${priceUsd}`
+  const isIndia = country === 'IN'
+  const priceLabel = !country ? '' : isIndia ? `₹${priceInr}` : `$${priceUsd}`
 
   useEffect(() => {
     onPriceChange?.(priceLabel)
@@ -119,23 +124,25 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
 
   const emailSuggestion = useMemo(() => suggestEmail(email.trim()), [email])
   const errors = {
-    email: !email.trim() ? 'Enter your email so we can send your guide.' : !EMAIL_RE.test(email.trim()) ? 'That email doesn’t look right.' : '',
     name: name.trim().length < 2 ? 'Enter your name.' : '',
-    region: region === '' ? 'Choose where you’re paying from.' : '',
-    country: region === 'INTL' && !intlCountry ? 'Select your country.' : '',
+    email: !email.trim()
+      ? 'Enter your email so we can send your guide.'
+      : !EMAIL_RE.test(email.trim())
+        ? 'That email doesn’t look right.'
+        : '',
+    country: !country ? 'Select your country.' : '',
   }
   const busy = status !== 'idle'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (busy) return
-    setTouched({ email: true, name: true, region: true, country: true })
+    setTouched({ name: true, email: true, country: true })
     setError('')
     setNotice('')
 
     if (Object.values(errors).some(Boolean)) {
-      setStep('details')
-      const first = errors.region ? 'region-in' : errors.country ? 'country' : errors.email ? 'email' : 'name'
+      const first = errors.name ? 'name' : errors.email ? 'email' : 'country'
       document.getElementById(first)?.focus()
       return
     }
@@ -143,13 +150,8 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
     const cleanName = name.trim()
     const cleanEmail = email.trim().toLowerCase()
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: cleanName, email: cleanEmail }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: cleanName, email: cleanEmail, country }))
     } catch {}
-
-    if (step === 'details') {
-      setStep('review')
-      return
-    }
 
     setStatus('creating')
 
@@ -187,7 +189,7 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
           ondismiss: () => {
             setStatus('idle')
             if (failedAttempt) setError(failedAttempt)
-            else setNotice('Payment window closed. You haven’t been charged. Try again whenever you’re ready.')
+            else setNotice('Payment window closed. You haven’t been charged. Tap pay again whenever you’re ready.')
           },
         },
         handler: async (payment: {
@@ -236,100 +238,34 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
     touched[key] && errors[key] ? 'border-red-400' : 'border-ink/15 hover:border-ink/30'
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-6">
-      {step === 'details' && (
-        <div className="space-y-6">
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-grape">Step 1 of 2 · Country &amp; contact</p>
-      {/* REGION */}
-      <fieldset>
-        <legend className="mb-2 block text-sm font-bold text-ink">Where are you paying from?</legend>
-        <div className="grid grid-cols-2 gap-3" role="radiogroup">
-          {[
-            { id: 'IN' as const, flag: '🇮🇳', label: 'India', price: `₹${priceInr}`, methods: 'UPI, cards, net banking' },
-            { id: 'INTL' as const, flag: '🌍', label: 'Outside India', price: `$${priceUsd}`, methods: 'International cards' },
-          ].map((opt) => {
-            const selected = region === opt.id
-            return (
-              <button
-                key={opt.id}
-                id={opt.id === 'IN' ? 'region-in' : 'region-intl'}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                disabled={busy}
-                onClick={() => {
-                  setRegion(opt.id)
-                  setError('')
-                }}
-                className={`rounded-2xl border-2 p-4 text-left transition ${
-                  selected
-                    ? 'border-ink bg-sun/25 shadow-sticker'
-                    : touched.region && errors.region
-                      ? 'border-red-400 bg-white'
-                      : 'border-ink/15 bg-white hover:border-ink/40'
-                }`}
-              >
-                <span className="flex items-center justify-between">
-                  <span className="text-2xl" aria-hidden>{opt.flag}</span>
-                  <span
-                    className={`h-5 w-5 rounded-full border-2 ${selected ? 'border-ink bg-grape ring-2 ring-inset ring-white' : 'border-ink/30'}`}
-                    aria-hidden
-                  />
-                </span>
-                <span className="mt-2 block text-sm font-bold text-ink">{opt.label}</span>
-                <span className="block text-2xl font-extrabold text-ink">{opt.price}</span>
-                <span className="mt-1 block text-xs text-ink/55">{opt.methods}</span>
-              </button>
-            )
-          })}
+    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      {/* NAME */}
+      <div>
+        <label htmlFor="name" className="mb-2 block text-sm font-bold text-ink">
+          Full name
+        </label>
+        <div className="relative">
+          <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" size={20} />
+          <input
+            id="name"
+            type="text"
+            autoComplete="name"
+            placeholder="Your name"
+            value={name}
+            disabled={busy}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+            aria-invalid={Boolean(touched.name && errors.name)}
+            className={`${fieldBase} ${fieldState('name')}`}
+          />
         </div>
-        {touched.region && errors.region && <p className="mt-2 text-sm text-red-600">{errors.region}</p>}
-      </fieldset>
-
-      {region === 'INTL' && (
-        <div className="animate-fade-up">
-          <label htmlFor="country" className="mb-2 block text-sm font-bold text-ink">
-            Country
-          </label>
-          <div className="relative">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl">
-              {findCountry(intlCountry)?.flag ?? <Globe size={20} className="text-ink/40" />}
-            </span>
-            <select
-              id="country"
-              value={intlCountry}
-              disabled={busy}
-              onChange={(e) => setIntlCountry(e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, country: true }))}
-              className={`${fieldBase} ${fieldState('country')} appearance-none pr-10 ${intlCountry ? '' : 'text-ink/40'}`}
-            >
-              <option value="" disabled>
-                Select your country
-              </option>
-              <optgroup label="Popular">
-                {COUNTRIES.slice(1, POPULAR_COUNT).map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.flag} {c.name}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="More countries">
-                {COUNTRIES.slice(POPULAR_COUNT).map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.flag} {c.name}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          </div>
-          {touched.country && errors.country && <p className="mt-2 text-sm text-red-600">{errors.country}</p>}
-        </div>
-      )}
+        {touched.name && errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
+      </div>
 
       {/* EMAIL */}
       <div>
         <label htmlFor="email" className="mb-2 block text-sm font-bold text-ink">
-          Email address
+          Email <span className="font-normal text-ink/55">(your PDF is sent here)</span>
         </label>
         <div className="relative">
           <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" size={20} />
@@ -346,86 +282,59 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
             onChange={(e) => setEmail(e.target.value)}
             onBlur={() => setTouched((t) => ({ ...t, email: true }))}
             aria-invalid={Boolean(touched.email && errors.email)}
-            aria-describedby="email-help"
             className={`${fieldBase} ${fieldState('email')}`}
           />
         </div>
-        <div id="email-help" className="mt-2 text-sm">
-          {emailSuggestion ? (
-            <button
-              type="button"
-              onClick={() => setEmail(emailSuggestion)}
-              className="rounded-lg bg-sun/30 px-2 py-1 text-ink"
-            >
-              Did you mean <strong>{emailSuggestion}</strong>?
-            </button>
-          ) : touched.email && errors.email ? (
-            <p className="text-red-600">{errors.email}</p>
-          ) : (
-            <p className="text-ink/55">Your PDF is sent here. Double-check the spelling.</p>
-          )}
-        </div>
-      </div>
-
-      {/* NAME */}
-      <div>
-        <label htmlFor="name" className="mb-2 block text-sm font-bold text-ink">
-          Your name
-        </label>
-        <div className="relative">
-          <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" size={20} />
-          <input
-            id="name"
-            type="text"
-            autoComplete="name"
-            placeholder="First and last name"
-            value={name}
-            disabled={busy}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => setTouched((t) => ({ ...t, name: true }))}
-            aria-invalid={Boolean(touched.name && errors.name)}
-            className={`${fieldBase} ${fieldState('name')}`}
-          />
-        </div>
-        {touched.name && errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
-      </div>
-
-        </div>
-      )}
-
-      {step === 'review' && (
-        <div className="animate-fade-up space-y-4">
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-grape">Step 2 of 2 · Review &amp; pay</p>
-          <dl className="divide-y-2 divide-ink/10 overflow-hidden rounded-2xl border-2 border-ink bg-white">
-            {[
-              { k: 'Country', v: `${findCountry(country)?.flag ?? ''} ${findCountry(country)?.name ?? ''}` },
-              { k: 'Name', v: name.trim() },
-              { k: 'Guide sent to', v: email.trim().toLowerCase() },
-              { k: 'You pay', v: `${priceLabel} ${isIndia ? '(INR)' : '(USD)'}` },
-            ].map((row) => (
-              <div key={row.k} className="flex items-center justify-between gap-4 px-4 py-3">
-                <dt className="text-sm text-ink/60">{row.k}</dt>
-                <dd className={`truncate text-right font-bold text-ink ${row.k === 'You pay' ? 'text-xl' : 'text-sm'}`}>{row.v}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="text-sm text-ink/60">
-            {isIndia ? 'Pay with UPI, cards, net banking or wallets.' : 'Pay with any international Visa, Mastercard or Amex card.'}
-          </p>
+        {emailSuggestion ? (
           <button
             type="button"
-            disabled={busy}
-            onClick={() => {
-              setStep('details')
-              setError('')
-              setNotice('')
-            }}
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-grape hover:underline disabled:opacity-50"
+            onClick={() => setEmail(emailSuggestion)}
+            className="mt-2 rounded-lg bg-sun/30 px-2 py-1 text-sm text-ink"
           >
-            <Pencil size={14} /> Edit details
+            Did you mean <strong>{emailSuggestion}</strong>?
           </button>
+        ) : (
+          touched.email && errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>
+        )}
+      </div>
+
+      {/* COUNTRY: pre-filled from location; the price follows it automatically */}
+      <div>
+        <label htmlFor="country" className="mb-2 block text-sm font-bold text-ink">
+          Country
+        </label>
+        <div className="relative">
+          <Globe className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" size={20} />
+          <select
+            id="country"
+            value={country}
+            disabled={busy}
+            onChange={(e) => {
+              setCountry(e.target.value)
+              setError('')
+            }}
+            onBlur={() => setTouched((t) => ({ ...t, country: true }))}
+            aria-invalid={Boolean(touched.country && errors.country)}
+            className={`${fieldBase} ${fieldState('country')} appearance-none pr-10 ${country ? '' : 'text-ink/40'}`}
+          >
+            <option value="" disabled>
+              Select your country
+            </option>
+            {COUNTRIES.slice(0, POPULAR_COUNT).map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.flag} {c.name}
+              </option>
+            ))}
+            <option disabled>──────────</option>
+            {COUNTRIES.slice(POPULAR_COUNT).map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.flag} {c.name}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+        {touched.country && errors.country && <p className="mt-2 text-sm text-red-600">{errors.country}</p>}
+      </div>
 
       {/* MESSAGES */}
       {error && (
@@ -440,7 +349,7 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
         </div>
       )}
 
-      {/* PAY */}
+      {/* ONE-CLICK PAY */}
       <button
         type="submit"
         disabled={busy}
@@ -460,26 +369,24 @@ export default function CheckoutForm({ slug, title, priceInr, priceUsd, initialC
           </>
         ) : (
           <>
-            {step === 'details' ? (
-              <>Continue{priceLabel ? ` · ${priceLabel}` : ''}</>
-            ) : (
-              <>
-                <Lock size={18} /> Pay {priceLabel} securely
-              </>
-            )}
+            <Lock size={18} /> Pay {priceLabel || 'now'}
             <ArrowRight className="transition group-hover:translate-x-1" size={20} />
           </>
         )}
       </button>
 
       <p className="text-center text-xs leading-5 text-ink/55">
-        Payments are processed by Razorpay. We never see or store your card or UPI details. By paying you agree to our{' '}
+        Secure payment by Razorpay. We never see your card or UPI details. By paying you agree to our{' '}
         <a href="/terms" className="underline">terms</a> and <a href="/refund-policy" className="underline">refund policy</a>.
       </p>
 
       {/* Verifying overlay: stop people closing the tab mid-confirmation */}
       {status === 'verifying' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-grape-deep/90 p-6 backdrop-blur" role="alertdialog" aria-live="assertive">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-grape-deep/90 p-6 backdrop-blur"
+          role="alertdialog"
+          aria-live="assertive"
+        >
           <div className="max-w-sm rounded-3xl border-2 border-ink bg-white p-8 text-center shadow-sticker-lg">
             <Loader2 className="mx-auto animate-spin text-grape" size={40} />
             <p className="mt-5 text-xl font-extrabold text-ink">Payment received!</p>

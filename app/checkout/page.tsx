@@ -51,7 +51,7 @@ export default async function CheckoutPage({
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         <h1 className="mb-8 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          Almost yours. Two quick steps.
+          Almost yours.
         </h1>
         <CheckoutPanel
           slug={book.slug}

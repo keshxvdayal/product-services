@@ -139,15 +139,13 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="mt-14 grid gap-10 md:grid-cols-2">
+          <div className="mt-14 grid gap-8 lg:grid-cols-2">
             {BOOKS.map((book) => (
               <BookCard key={book.slug} book={book} country={isIndia ? 'IN' : 'US'} />
             ))}
           </div>
 
-          <p className="mt-10 text-center text-sm text-ink/60">
-            ₹299 in India · $20 internationally · price is set by the country you choose at checkout
-          </p>
+
         </div>
       </section>
 
