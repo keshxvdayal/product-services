@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function ShippingDeliveryPage() {
   return (
-    <main className="min-h-screen bg-[#fafafa] text-gray-900">
+    <main className="min-h-screen bg-cream text-gray-900">
       {/* Header */}
       <section className="border-b border-gray-200 bg-white px-6 py-20">
         <div className="mx-auto max-w-4xl">
@@ -15,7 +15,7 @@ export default function ShippingDeliveryPage() {
           </h1>
 
           <p className="mt-5 max-w-3xl text-lg leading-8 text-gray-600">
-            LearnWithZavio provides digital ebooks and educational resources.
+            NudgePops provides digital ebooks and educational resources.
             This policy explains how your purchased digital products are
             delivered.
           </p>
@@ -41,7 +41,7 @@ export default function ShippingDeliveryPage() {
             </h2>
 
             <p className="mt-4 leading-7 text-gray-600">
-              LearnWithZavio currently sells digital products such as ebooks,
+              NudgePops currently sells digital products such as ebooks,
               guides, and other digital educational resources.
             </p>
 
@@ -185,7 +185,7 @@ export default function ShippingDeliveryPage() {
 
             <div className="mt-5 rounded-2xl bg-gray-50 p-5">
               <p className="font-medium text-gray-900">
-                All products sold through LearnWithZavio are digital.
+                All products sold through NudgePops are digital.
               </p>
 
               <p className="mt-2 leading-7 text-gray-600">
@@ -219,7 +219,7 @@ export default function ShippingDeliveryPage() {
           <div className="border-t border-gray-200 pt-8 text-sm leading-6 text-gray-500">
             <p>
               This Shipping & Delivery Policy applies to the digital products
-              currently offered by LearnWithZavio. If physical products are
+              currently offered by NudgePops. If physical products are
               offered in the future, this policy will be updated accordingly.
             </p>
           </div>

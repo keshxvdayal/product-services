@@ -1,327 +1,257 @@
-import Link from 'next/link'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import {
+  ArrowRight,
+  Brain,
+  ClipboardCheck,
+  Mail,
+  MousePointerClick,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Wrench,
+  CalendarCheck,
+  FlaskConical,
+  MapPin,
+} from 'lucide-react'
+import BookCard from '@/components/BookCard'
+import Faq from '@/components/Faq'
+import { BOOKS } from '@/lib/catalog'
+import { getVisitorCountry } from '@/lib/visitor'
+
+const RESEARCH = [
+  {
+    stat: '2×',
+    text: 'MIT students bid about twice as much for the same tickets when paying by card instead of cash.',
+    source: 'Prelec & Simester, MIT, 2001',
+    color: 'bg-sun',
+  },
+  {
+    stat: '74%',
+    text: 'of people surveyed in India said UPI and digital payments make them spend more.',
+    source: 'IIIT Delhi survey, 2024',
+    color: 'bg-bubble',
+  },
+  {
+    stat: '13.6%',
+    text: 'average savings rate, up from 3.5%, when people committed part of future raises in advance.',
+    source: 'Thaler & Benartzi, 2004',
+    color: 'bg-mint',
+  },
+]
+
+const INSIDE = [
+  { icon: FlaskConical, title: 'The science, simply', text: 'Real studies from MIT, Stanford and Nobel laureates, explained in plain words.' },
+  { icon: ClipboardCheck, title: 'A self-audit', text: 'A quiz and worksheet that put a rupee number on your own leaks.' },
+  { icon: Wrench, title: '10 practical fixes', text: 'Each with why it works and exact setup steps you can do tonight.' },
+  { icon: CalendarCheck, title: 'A ready plan', text: 'A day-by-day reset or playbook, so you’re never wondering what’s next.' },
+  { icon: Sparkles, title: 'Toolkit & scripts', text: 'Cheat sheets, checklists and words for awkward money moments.' },
+  { icon: MapPin, title: 'India-first', text: 'UPI, EMIs, appraisals and salaries in rupees, with notes for readers abroad.' },
+]
 
 export default async function HomePage() {
-  const supabase = await createClient()
-
-  const { data: products, error } = await supabase
-    .from('products')
-    .select('id, title, slug, description, price_inr, price_usd, cover_url')
-    .eq('active', true)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('Failed to load products:', error)
-  }
+  const country = await getVisitorCountry()
+  const isIndia = country === 'IN' || country === ''
+  const priceLine = isIndia ? '₹299 per guide' : '$20 per guide'
 
   return (
-    <main className="min-h-screen bg-[#090D16] text-slate-100 selection:bg-indigo-500 selection:text-white">
-      {/* BACKGROUND AMBIENT GLOWS */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-[10%] left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-gradient-to-tr from-indigo-600/20 via-purple-600/10 to-transparent blur-[120px] rounded-full" />
-        <div className="absolute top-[40%] -left-[10%] w-[500px] h-[500px] bg-blue-600/10 blur-[150px] rounded-full" />
-      </div>
+    <main>
+      {/* HERO */}
+      <section className="relative overflow-hidden bg-grape-deep text-white">
+        <div className="bg-stars absolute inset-0 opacity-80" />
+        <div className="absolute -right-40 top-10 h-[480px] w-[480px] rounded-full bg-grape-light/40 blur-[120px]" />
+        <div className="absolute -left-32 bottom-0 h-[360px] w-[360px] rounded-full bg-bubble/25 blur-[120px]" />
 
-      <div className="relative z-10">
-        {/* NAVBAR */}
-        <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#090D16]/70 border-b border-slate-800/80">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-            <Link
-              href="/"
-              className="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent hover:opacity-90 transition"
-            >
-              ZAVIO<span className="text-indigo-500">.</span>
-            </Link>
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pb-28 lg:pt-20">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full border border-sun/40 bg-sun/10 px-4 py-1.5 text-sm font-semibold text-sun">
+              <Brain size={16} /> Little nudges. Big realizations.
+            </p>
 
-            <nav className="flex items-center gap-6 text-sm font-medium">
-              <a
-                href="#products"
-                className="text-slate-400 transition hover:text-white"
+            <h1 className="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+              Your money problem isn’t willpower.{' '}
+              <span className="relative whitespace-nowrap text-sun">
+                It’s your brain.
+                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none" aria-hidden>
+                  <path d="M2 9c60-6 160-8 296-3" stroke="#FFC93C" strokeWidth="4" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h1>
+
+            <p className="mt-7 max-w-xl text-lg leading-8 text-white/80">
+              Short, science-backed guides that show why your salary disappears, and the small nudges that fix it. Read one in an evening. Feel the difference by payday.
+            </p>
+
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="#guides"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-sun px-7 py-4 text-base font-bold text-ink shadow-[4px_4px_0_0_#FF6F9F] transition hover:-translate-y-0.5"
               >
-                Products
-              </a>
-              <a
+                Pick your guide <ArrowRight size={18} />
+              </Link>
+              <Link
                 href="#how-it-works"
-                className="text-slate-400 transition hover:text-white"
+                className="inline-flex items-center justify-center rounded-full border-2 border-white/30 px-7 py-4 text-base font-semibold text-white transition hover:border-white hover:bg-white/5"
               >
-                How It Works
-              </a>
-              
-              <a
-                href="/contact"
-                className="text-sm font-medium text-gray-700 transition hover:text-gray-900"
-              >
-                Contact
-              </a>
-            </nav>
+                How it works
+              </Link>
+            </div>
+
+            <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/75">
+              <li className="flex items-center gap-2"><Mail size={16} className="text-mint" /> Instant PDF by email</li>
+              <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-mint" /> Secure Razorpay checkout</li>
+              <li className="flex items-center gap-2"><Sparkles size={16} className="text-mint" /> {priceLine}, one-time</li>
+            </ul>
           </div>
-        </header>
 
-        {/* HERO SECTION */}
-        <section className="relative overflow-hidden border-b border-slate-800/60 py-24 md:py-36">
-          <div className="mx-auto max-w-7xl px-6">
-            <div className="mx-auto max-w-4xl text-center">
-              
-              {/* BADGE */}
-              <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-xs md:text-sm font-medium text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                </span>
-                Digital knowledge. Delivered instantly.
+          {/* Visual: mascot + covers */}
+          <div className="relative mx-auto h-[420px] w-full max-w-[460px] sm:h-[480px]">
+            <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sun/30 blur-3xl" />
+            <div className="absolute left-0 top-10 w-[46%] rotate-[-8deg] overflow-hidden rounded-xl border-2 border-ink shadow-2xl transition hover:rotate-[-4deg]">
+              <Image src={BOOKS[0].cover} alt={BOOKS[0].title} width={460} height={657} priority className="h-auto w-full" />
+            </div>
+            <div className="absolute right-0 top-2 w-[46%] rotate-[7deg] overflow-hidden rounded-xl border-2 border-ink shadow-2xl transition hover:rotate-[3deg]">
+              <Image src={BOOKS[1].cover} alt={BOOKS[1].title} width={460} height={657} priority className="h-auto w-full" />
+            </div>
+            <div className="absolute bottom-0 left-1/2 w-[52%] -translate-x-1/2 animate-float">
+              <div className="relative aspect-square overflow-hidden rounded-full border-4 border-sun shadow-glow">
+                <Image src="/brand/logo.png" alt="NudgePops mascot" fill sizes="240px" className="object-cover" priority />
               </div>
-
-              {/* MAIN HEADING */}
-              <h1 className="text-3xl font-black tracking-tight text-white md:text-5xl lg:text-7xl leading-none">
-                Learn something useful.
-                <br />
-                <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  Build something better.
-                </span>
-              </h1>
-
-              <p className="mx-auto mt-8 max-w-2xl text-lg text-slate-400 md:text-xl font-normal leading-relaxed">
-                Practical digital guides and resources engineered to help you learn, build, and scale faster.
-              </p>
-
-              {/* ACTION BUTTONS */}
-              <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
-                <a
-                  href="#products"
-                  className="group relative inline-flex items-center justify-center rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-[0_0_25px_rgba(79,70,229,0.4)] transition-all hover:bg-indigo-500 hover:shadow-[0_0_35px_rgba(79,70,229,0.6)] active:scale-95"
-                >
-                  Browse Products
-                </a>
-
-                <a
-                  href="#how-it-works"
-                  className="rounded-xl border border-slate-800 bg-slate-900/50 px-8 py-4 text-base font-semibold text-slate-300 backdrop-blur-md transition hover:border-slate-700 hover:bg-slate-800 hover:text-white active:scale-95"
-                >
-                  How It Works
-                </a>
-              </div>
-
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* PRODUCTS SECTION */}
-        <section id="products" className="mx-auto max-w-7xl px-6 py-24">
-          <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-indigo-400">
-                Explore Catalog
-              </p>
-              <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-5xl">
-                Digital Guides
-              </h2>
-            </div>
-            <p className="text-slate-400 max-w-md">
-              Pick a guide and get instant access sent straight to your inbox after checkout.
+        <svg className="absolute bottom-0 left-0 w-full text-cream" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden>
+          <path d="M0 60V30c240-30 480-30 720 0s480 30 720 0v30z" fill="currentColor" />
+        </svg>
+      </section>
+
+      {/* GUIDES */}
+      <section id="guides" className="bg-dots scroll-mt-20">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-grape">The Money Brain series</p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-ink sm:text-5xl">
+              Two guides. Two leaks fixed.
+            </h2>
+            <p className="mt-4 text-lg text-ink/70">
+              One stops the everyday tap-and-forget spending. The other makes your next raise actually count.
             </p>
           </div>
 
-          {!products || products.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-800 bg-slate-900/30 py-24 text-center">
-              <p className="text-slate-500 font-medium text-lg">
-                No guides available right now. Check back soon!
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product) => (
-                <article
-                  key={product.id}
-                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-md transition duration-300 hover:-translate-y-2 hover:border-slate-700 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-                >
-                  {/* COVER IMAGE */}
-                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-950">
-                    {product.cover_url ? (
-                      <Image
-                        src={product.cover_url}
-                        alt={product.title}
-                        fill
-                        className="object-cover transition duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center bg-slate-900">
-                        <span className="text-sm text-slate-600">No cover available</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-80" />
-                  </div>
-
-                  {/* CARD CONTENT */}
-                  <div className="flex flex-1 flex-col justify-between p-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-white group-hover:text-indigo-300 transition">
-                        {product.title}
-                      </h3>
-
-                      {product.description && (
-                        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-slate-400">
-                          {product.description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-8 flex items-center justify-between border-t border-slate-800/80 pt-4">
-                      <div>
-                        <p className="text-[10px] uppercase font-semibold tracking-wider text-slate-500">
-                          Price
-                        </p>
-                        <p className="text-2xl font-black text-white">
-                          ₹{product.price_inr}
-                        </p>
-                      </div>
-
-                      <Link
-                        href={`/checkout?product=${encodeURIComponent(product.id)}`}
-                        className="rounded-lg bg-slate-800 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-indigo-600 hover:shadow-[0_0_15px_rgba(79,70,229,0.4)]"
-                      >
-                        Get Guide →
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* HOW IT WORKS */}
-        <section id="how-it-works" className="border-y border-slate-800/60 bg-slate-950/50 py-24">
-          <div className="mx-auto max-w-7xl px-6">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-indigo-400">
-                Simple Process
-              </p>
-              <h2 className="mt-3 text-3xl font-extrabold text-white md:text-4xl">
-                From purchase to reading in under 2 minutes.
-              </h2>
-            </div>
-
-            <div className="mt-16 grid gap-8 md:grid-cols-3">
-              <Step
-                number="01"
-                title="Choose a guide"
-                description="Browse our library and select the topic you'd like to master."
-              />
-              <Step
-                number="02"
-                title="Instant checkout"
-                description="Secure payment handling via our high-speed checkout."
-              />
-              <Step
-                number="03"
-                title="Direct delivery"
-                description="Receive instant access via email link and immediate download."
-              />
-            </div>
+          <div className="mt-14 grid gap-10 md:grid-cols-2">
+            {BOOKS.map((book) => (
+              <BookCard key={book.slug} book={book} country={isIndia ? 'IN' : 'US'} />
+            ))}
           </div>
-        </section>
 
-        {/* CALL TO ACTION */}
-        <section className="relative overflow-hidden py-24">
-          <div className="mx-auto max-w-4xl px-6 text-center">
-            <div className="rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/80 to-slate-950/80 p-12 backdrop-blur-xl shadow-2xl">
-              <h2 className="text-3xl font-black tracking-tight text-white md:text-5xl">
-                Ready to level up your skills?
-              </h2>
-              <p className="mx-auto mt-4 max-w-lg text-slate-400">
-                Join thousands of builders learning faster with curated digital knowledge.
-              </p>
-              <a
-                href="#products"
-                className="mt-8 inline-block rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] transition hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.6)]"
-              >
-                Explore All Guides
-              </a>
-            </div>
+          <p className="mt-10 text-center text-sm text-ink/60">
+            ₹299 in India · $20 internationally · price is set by the country you choose at checkout
+          </p>
+        </div>
+      </section>
+
+      {/* RESEARCH NUDGES */}
+      <section className="border-y-2 border-ink bg-ink text-white">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <div className="max-w-2xl">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-sun">A few nudges from the guides</p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              You’re not bad with money. Your payments are designed to feel painless.
+            </h2>
           </div>
-        </section>
 
-        {/* FOOTER */}
-        import Link from "next/link";
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {RESEARCH.map((r) => (
+              <figure key={r.stat} className="rounded-3xl border border-white/10 bg-white/[0.04] p-7">
+                <span className={`inline-block rounded-2xl ${r.color} px-4 py-2 text-3xl font-extrabold text-ink`}>
+                  {r.stat}
+                </span>
+                <blockquote className="mt-5 text-base leading-7 text-white/85">{r.text}</blockquote>
+                <figcaption className="mt-4 text-xs font-medium uppercase tracking-wider text-white/45">{r.source}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
 
-<footer className="border-t border-slate-800/80 bg-[#060910]">
-  <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8 md:flex-row md:items-center md:justify-between">
+      {/* WHAT'S INSIDE */}
+      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-grape">Inside every guide</p>
+          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+            Not a lecture. A system you can set up tonight.
+          </h2>
+        </div>
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {INSIDE.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="rounded-3xl border-2 border-ink bg-white p-6 transition hover:-translate-y-1 hover:shadow-sticker">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-grape text-sun">
+                <Icon size={22} />
+              </span>
+              <h3 className="mt-5 text-lg font-bold text-ink">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-ink/70">{text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-    <p className="text-xs text-slate-500">
-      © 2026 Zavio. All rights reserved.
-    </p>
+      {/* HOW IT WORKS */}
+      <section id="how-it-works" className="scroll-mt-20 bg-cream-deep">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-grape">How it works</p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+              From checkout to reading in about two minutes.
+            </h2>
+          </div>
+          <ol className="mt-12 grid gap-6 md:grid-cols-3">
+            {[
+              { icon: MousePointerClick, title: 'Pick a guide', text: 'Choose the leak you want to fix first. Or grab both.' },
+              { icon: ShieldCheck, title: 'Pay securely', text: 'UPI, cards, net banking or wallets in India. International cards everywhere else.' },
+              { icon: Smartphone, title: 'Read anywhere', text: 'Your PDF lands in your inbox right away. Read on your phone tonight.' },
+            ].map(({ icon: Icon, title, text }, i) => (
+              <li key={title} className="relative rounded-3xl border-2 border-ink bg-white p-7 shadow-sticker">
+                <span className="absolute -top-4 left-6 rounded-full border-2 border-ink bg-sun px-3 py-0.5 text-sm font-extrabold text-ink">
+                  Step {i + 1}
+                </span>
+                <Icon className="mt-2 text-grape" size={28} />
+                <h3 className="mt-4 text-xl font-bold text-ink">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink/70">{text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
 
-    <p className="text-xs text-slate-400">
-      Digital knowledge, delivered instantly.
-    </p>
+      {/* FAQ */}
+      <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-20 sm:px-6">
+        <h2 className="text-center text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Questions, answered</h2>
+        <div className="mt-10">
+          <Faq />
+        </div>
+      </section>
 
-    <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-      <Link
-        href="/about"
-        className="text-slate-400 transition hover:text-white"
-      >
-        About
-      </Link>
-
-      <Link
-        href="/contact"
-        className="text-slate-400 transition hover:text-white"
-      >
-        Contact
-      </Link>
-
-      <Link
-        href="/terms"
-        className="text-slate-400 transition hover:text-white"
-      >
-        Terms & Conditions
-      </Link>
-
-      <Link
-        href="/privacy"
-        className="text-slate-400 transition hover:text-white"
-      >
-        Privacy Policy
-      </Link>
-
-      <Link
-        href="/refund-policy"
-        className="text-slate-400 transition hover:text-white"
-      >
-        Refund Policy
-      </Link>
-
-      <Link
-        href="/shipping"
-        className="text-slate-400 transition hover:text-white"
-      >
-        Shipping & Delivery
-      </Link>
-    </nav>
-
-  </div>
-</footer>
-      </div>
+      {/* CTA */}
+      <section className="px-4 pb-24 sm:px-6">
+        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[36px] border-2 border-ink bg-grape px-6 py-14 text-center text-white shadow-sticker-lg sm:px-12">
+          <div className="bg-stars absolute inset-0 opacity-70" />
+          <div className="relative">
+            <h2 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
+              Make your next salary <span className="text-sun">feel different.</span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-lg text-white/80">
+              One evening of reading. A few small changes. Money left in the last week before payday.
+            </p>
+            <Link
+              href="#guides"
+              className="mt-8 inline-flex items-center gap-2 rounded-full border-2 border-ink bg-sun px-8 py-4 text-base font-bold text-ink shadow-[4px_4px_0_0_#1A1238] transition hover:-translate-y-0.5"
+            >
+              Choose your guide <ArrowRight size={18} />
+            </Link>
+          </div>
+        </div>
+      </section>
     </main>
-  )
-}
-
-/* STEP COMPONENT */
-function Step({
-  number,
-  title,
-  description,
-}: {
-  number: string
-  title: string
-  description: string
-}) {
-  return (
-    <div className="relative rounded-2xl border border-slate-800/80 bg-slate-900/30 p-8 backdrop-blur-sm transition duration-300 hover:border-slate-700">
-      <div className="text-3xl font-black text-indigo-500/40">{number}</div>
-      <h3 className="mt-4 text-xl font-bold text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-400">{description}</p>
-    </div>
   )
 }

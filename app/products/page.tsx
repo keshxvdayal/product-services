@@ -1,29 +1,24 @@
-import { getProducts } from '@/lib/products'
-import ProductCard from '@/components/ProductCard'
+import BookCard from '@/components/BookCard'
+import { BOOKS } from '@/lib/catalog'
+import { getVisitorCountry } from '@/lib/visitor'
+
+export const metadata = { title: 'All guides' }
 
 export default async function ProductsPage() {
-  const products = await getProducts()
+  const country = await getVisitorCountry()
+  const isIntl = country !== '' && country !== 'IN'
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-16">
-      <h1 className="text-4xl font-bold">
-        Digital Products
-      </h1>
-
-      {products.length === 0 ? (
-        <p className="mt-10 text-gray-500">
-          No products available.
-        </p>
-      ) : (
-        <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-            />
+    <main className="bg-dots">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <p className="text-sm font-bold uppercase tracking-[0.18em] text-grape">The Money Brain series</p>
+        <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">All guides</h1>
+        <div className="mt-12 grid gap-10 md:grid-cols-2">
+          {BOOKS.map((book) => (
+            <BookCard key={book.slug} book={book} country={isIntl ? 'US' : 'IN'} />
           ))}
         </div>
-      )}
+      </div>
     </main>
   )
 }

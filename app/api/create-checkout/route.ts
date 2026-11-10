@@ -1,136 +1,56 @@
 import { NextResponse } from 'next/server'
-import Razorpay from 'razorpay'
-import { createClient } from '@/lib/supabase/server'
+import { getBook, priceFor } from '@/lib/catalog'
+import { findCountry } from '@/lib/countries'
+import { resolveProductId } from '@/lib/products'
+import { getRazorpay } from '@/lib/razorpay'
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-})
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
+function fail(error: string, status: number) {
+  return NextResponse.json({ success: false, error }, { status })
+}
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
 
-    const {
-      productId,
-      name,
-      email,
-      country,
-    } = body
+    const slug = String(body.slug ?? '').trim()
+    const name = String(body.name ?? '').trim().slice(0, 120)
+    const email = String(body.email ?? '').trim().toLowerCase().slice(0, 200)
+    const country = String(body.country ?? '').trim().toUpperCase()
 
-    console.log('Create checkout request:', {
-      productId,
-      name,
-      email,
-      country,
-    })
+    const book = getBook(slug)
+    if (!book) return fail('That guide could not be found.', 404)
+    if (name.length < 2) return fail('Please enter your name.', 400)
+    if (!EMAIL_RE.test(email)) return fail('Please enter a valid email address.', 400)
+    if (!findCountry(country)) return fail('Please select your country.', 400)
 
-    // Basic validation
-    if (!productId || !name || !email || !country) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Missing required fields.',
-        },
-        { status: 400 }
-      )
-    }
+    // Price is decided on the server from the catalog, never from the browser.
+    const price = priceFor(book, country)
+    const productId = await resolveProductId(book.slug)
 
-    // Get product from Supabase
-    const supabase = await createClient()
-
-    const { data: product, error: productError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', productId)
-      .eq('active', true)
-      .single()
-
-    if (productError || !product) {
-      console.error('Product lookup error:', productError)
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Product not found.',
-        },
-        { status: 404 }
-      )
-    }
-
-    // Decide price based on country
-    const isIndia = country === 'IN'
-
-    const amount = isIndia
-      ? product.price_inr
-      : Number(product.price_usd)
-
-    const currency = isIndia ? 'INR' : 'USD'
-
-    // Razorpay expects the smallest currency unit.
-    // ₹299 => 29900 paise
-    // $19 => 1900 cents
-    const razorpayAmount = Math.round(amount * 100)
-
-    console.log('Payment calculation:', {
-      productId: product.id,
-      amount,
-      razorpayAmount,
-      currency,
-      country,
-    })
-
-    // Create Razorpay order
-    const razorpayOrder = await razorpay.orders.create({
-      amount: razorpayAmount,
-      currency,
-      receipt: `zavio_${Date.now()}`,
+    const order = await getRazorpay().orders.create({
+      amount: Math.round(price.amount * 100),
+      currency: price.currency,
+      receipt: `np_${Date.now()}`,
       notes: {
-        product_id: product.id,
+        product_id: productId,
+        product_slug: book.slug,
+        product_title: book.title,
         customer_name: name,
         customer_email: email,
         country,
       },
     })
 
-    console.log('Razorpay order created:', razorpayOrder.id)
-
-    // Return order information to browser
     return NextResponse.json({
       success: true,
-
-      order: {
-        id: razorpayOrder.id,
-        amount: razorpayOrder.amount,
-        currency: razorpayOrder.currency,
-      },
-
-      product: {
-        id: product.id,
-        title: product.title,
-      },
-
-      customer: {
-        name,
-        email,
-        country,
-      },
-
       keyId: process.env.RAZORPAY_KEY_ID,
+      order: { id: order.id, amount: order.amount, currency: order.currency },
+      product: { slug: book.slug, title: book.title },
     })
-
   } catch (error) {
     console.error('CREATE CHECKOUT ERROR:', error)
-
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to create payment checkout.',
-      },
-      { status: 500 }
-    )
+    return fail('We could not start your checkout. Please try again in a moment.', 500)
   }
 }

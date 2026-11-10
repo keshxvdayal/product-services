@@ -66,3 +66,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #fff8ec;
+    color: #1a1238;
+  }
+  ::selection {
+    background: #ffc93c;
+    color: #1a1238;
+  }
+}
+
+@layer utilities {
+  .bg-dots {
+    background-image: radial-gradient(rgba(26, 18, 56, 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .bg-stars {
+    background-image:
+      radial-gradient(1.5px 1.5px at 20% 30%, rgba(255, 255, 255, 0.7), transparent),
+      radial-gradient(1px 1px at 70% 20%, rgba(255, 255, 255, 0.6), transparent),
+      radial-gradient(1.5px 1.5px at 40% 80%, rgba(255, 201, 60, 0.7), transparent),
+      radial-gradient(1px 1px at 85% 65%, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1px 1px at 10% 70%, rgba(255, 255, 255, 0.5), transparent);
+    background-size: 340px 340px;
+  }
+}

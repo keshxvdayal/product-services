@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="min-h-screen bg-[#fafafa] text-gray-900">
+    <main className="min-h-screen bg-cream text-gray-900">
       {/* Header */}
       <section className="border-b border-gray-200 bg-white px-6 py-20">
         <div className="mx-auto max-w-4xl">
@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
           </h1>
 
           <p className="mt-5 text-lg leading-8 text-gray-600">
-            This Privacy Policy explains how LearnWithZavio collects, uses,
+            This Privacy Policy explains how NudgePops collects, uses,
             and protects information when you visit our website or purchase
             our digital products.
           </p>
@@ -37,7 +37,7 @@ export default function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4 leading-7 text-gray-600">
-              LearnWithZavio respects your privacy and is committed to
+              NudgePops respects your privacy and is committed to
               handling your personal information responsibly.
             </p>
 

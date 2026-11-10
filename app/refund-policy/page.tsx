@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function RefundPolicyPage() {
   return (
-    <main className="min-h-screen bg-[#fafafa] text-gray-900">
+    <main className="min-h-screen bg-cream text-gray-900">
       {/* Header */}
       <section className="border-b border-gray-200 bg-white px-6 py-20">
         <div className="mx-auto max-w-4xl">
@@ -16,7 +16,7 @@ export default function RefundPolicyPage() {
 
           <p className="mt-5 text-lg leading-8 text-gray-600">
             This policy explains our approach to refunds and cancellations for
-            digital products purchased through LearnWithZavio.
+            digital products purchased through NudgePops.
           </p>
 
           <p className="mt-4 text-sm text-gray-500">
@@ -36,7 +36,7 @@ export default function RefundPolicyPage() {
             </h2>
 
             <p className="mt-4 leading-7 text-gray-600">
-              LearnWithZavio sells digital products, including ebooks, guides,
+              NudgePops sells digital products, including ebooks, guides,
               and other downloadable educational resources.
             </p>
 

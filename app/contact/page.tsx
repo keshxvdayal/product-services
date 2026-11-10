@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { SITE } from "@/lib/site";
 
 export default function ContactPage() {
   const [status, setStatus] = useState("");
@@ -49,7 +50,7 @@ export default function ContactPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#fafafa] px-6 py-20">
+    <main className="min-h-screen bg-cream px-6 py-20">
       <div className="mx-auto max-w-6xl">
 
         {/* Header */}
@@ -96,10 +97,10 @@ export default function ContactPage() {
                 </p>
 
                 <a
-                  href="mailto:support@learnwithzavio.com"
+                  href={`mailto:${SITE.supportEmail}`}
                   className="mt-2 inline-block text-base font-medium text-white transition hover:text-gray-300"
                 >
-                  support@learnwithzavio.com
+                  {SITE.supportEmail}
                 </a>
               </div>
 

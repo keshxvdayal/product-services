@@ -2,22 +2,22 @@ import Link from "next/link";
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#fafafa] text-gray-900">
+    <main className="min-h-screen bg-cream text-gray-900">
       {/* Hero */}
       <section className="px-6 pb-16 pt-24 sm:pt-32">
         <div className="mx-auto max-w-5xl">
           <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-            About LearnWithZavio
+            About NudgePops
           </p>
 
           <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-6xl">
-            Practical knowledge for the AI-powered world.
+            Little nudges. Big realizations.
           </h1>
 
           <p className="mt-7 max-w-2xl text-lg leading-8 text-gray-600">
-            LearnWithZavio creates practical digital resources designed to
-            help people understand AI, technology, digital skills, and
-            opportunities in a simple and actionable way.
+            NudgePops creates practical digital resources designed to
+            help people understand why money behaves the way it does in their
+            heads, and make small, science-backed changes that stick.
           </p>
         </div>
       </section>
@@ -37,7 +37,7 @@ export default function AboutPage() {
             </h2>
 
             <p className="mt-4 leading-7 text-gray-600">
-              LearnWithZavio is an independent digital education platform
+              NudgePops is an independent digital education platform
               focused on creating accessible and practical learning
               resources.
             </p>
@@ -55,8 +55,8 @@ export default function AboutPage() {
 
             <p className="mt-4 leading-7 text-gray-600">
               We provide digital ebooks, guides, and other educational
-              resources covering topics such as artificial intelligence,
-              technology, productivity, and digital skills.
+              resources on money psychology: why cards and UPI make spending
+              painless, why raises vanish, and what to do about it.
             </p>
           </div>
 
@@ -136,7 +136,7 @@ export default function AboutPage() {
           </h2>
 
           <p className="mt-4 leading-7 text-gray-600">
-            If you have a question about LearnWithZavio, our products,
+            If you have a question about NudgePops, our products,
             payments, or an order, we're happy to help.
           </p>
 

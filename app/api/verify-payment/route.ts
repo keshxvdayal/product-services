@@ -1,241 +1,89 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
-import { createClient } from '@/lib/supabase/server'
+import { getRazorpay } from '@/lib/razorpay'
+
+function fail(error: string, status: number) {
+  return NextResponse.json({ success: false, error }, { status })
+}
+
+function safeEqual(a: string, b: string) {
+  const ab = Buffer.from(a)
+  const bb = Buffer.from(b)
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb)
+}
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
+    const orderId = String(body.razorpay_order_id ?? '')
+    const paymentId = String(body.razorpay_payment_id ?? '')
+    const signature = String(body.razorpay_signature ?? '')
 
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      productId,
-      name,
-      email,
-      country,
-    } = body
-
-    // ----------------------------------------
-    // 1. Validate request
-    // ----------------------------------------
-
-    if (
-      !razorpay_order_id ||
-      !razorpay_payment_id ||
-      !razorpay_signature ||
-      !productId ||
-      !name ||
-      !email ||
-      !country
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Missing payment information.',
-        },
-        { status: 400 }
-      )
+    if (!orderId || !paymentId || !signature) {
+      return fail('Missing payment information.', 400)
     }
 
-    // ----------------------------------------
-    // 2. Verify Razorpay signature
-    // ----------------------------------------
+    const secret = process.env.RAZORPAY_KEY_SECRET
+    if (!secret) throw new Error('RAZORPAY_KEY_SECRET is not configured.')
 
-    const razorpaySecret =
-      process.env.RAZORPAY_KEY_SECRET
-
-    if (!razorpaySecret) {
-      throw new Error(
-        'RAZORPAY_KEY_SECRET is not configured.'
-      )
-    }
-
-    const generatedSignature = crypto
-      .createHmac('sha256', razorpaySecret)
-      .update(
-        `${razorpay_order_id}|${razorpay_payment_id}`
-      )
+    // 1. Verify the signature Razorpay gave the browser.
+    const expected = crypto
+      .createHmac('sha256', secret)
+      .update(`${orderId}|${paymentId}`)
       .digest('hex')
 
-    const isValid =
-      generatedSignature === razorpay_signature
-
-    if (!isValid) {
-      console.error('Invalid Razorpay signature')
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Payment verification failed.',
-        },
-        { status: 400 }
-      )
+    if (!safeEqual(expected, signature)) {
+      console.error('Invalid Razorpay signature for order', orderId)
+      return fail('We could not verify this payment. If money was taken, contact us with your payment ID.', 400)
     }
 
-    console.log(
-      'Razorpay payment verified:',
-      {
-        orderId: razorpay_order_id,
-        paymentId: razorpay_payment_id,
-        productId,
-        name,
-        email,
-        country,
-      }
-    )
-
-    // ----------------------------------------
-    // 3. Get product from Supabase
-    // ----------------------------------------
-
-    const supabase = await createClient()
-
-    const {
-      data: product,
-      error: productError,
-    } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', productId)
-      .eq('active', true)
-      .single()
-
-    if (productError || !product) {
-      console.error(
-        'Product lookup failed:',
-        productError
-      )
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Product not found.',
-        },
-        { status: 404 }
-      )
-    }
-
-    // ----------------------------------------
-    // 4. Determine amount and currency
-    // ----------------------------------------
-
-    const isIndia = country === 'IN'
-
-    const amount = isIndia
-      ? Number(product.price_inr)
-      : Number(product.price_usd)
-
-    const currency = isIndia
-      ? 'INR'
-      : 'USD'
-
-    // ----------------------------------------
-    // 5. Send payment to Make.com
-    // ----------------------------------------
-
-    const makeWebhookUrl =
-      process.env.MAKE_PAYMENT_WEBHOOK_URL
-
-    if (!makeWebhookUrl) {
-      throw new Error(
-        'MAKE_PAYMENT_WEBHOOK_URL is not configured.'
-      )
-    }
-
-    /*
-     * IMPORTANT:
-     *
-     * These field names MUST match the fields
-     * your Make webhook is expecting.
-     */
+    // 2. Read product, customer and amount from the order we created,
+    //    instead of trusting what the browser sends.
+    const order = await getRazorpay().orders.fetch(orderId)
+    const notes = (order.notes ?? {}) as Record<string, string>
 
     const webhookPayload = {
       event: 'payment.success',
-
-      orderId: razorpay_order_id,
-
-      productId: product.id,
-
-      firstName: name,
-
-      email,
-
-      country,
-
-      amount,
-
-      currency,
-
+      orderId,
+      productId: notes.product_id,
+      productSlug: notes.product_slug,
+      productTitle: notes.product_title,
+      firstName: notes.customer_name,
+      email: notes.customer_email,
+      country: notes.country,
+      amount: Number(order.amount) / 100,
+      currency: order.currency,
       paymentProvider: 'razorpay',
-
-      paymentId: razorpay_payment_id,
-
+      paymentId,
       paymentStatus: 'paid',
     }
 
-    console.log(
-      'Sending payment to Make:',
-      webhookPayload
-    )
+    // 3. Trigger delivery. The payment is already verified, so a delivery
+    //    hiccup must not show the buyer a "payment failed" message.
+    let deliveryQueued = false
+    const makeWebhookUrl = process.env.MAKE_PAYMENT_WEBHOOK_URL
 
-    const makeResponse = await fetch(
-      makeWebhookUrl,
-      {
-        method: 'POST',
-
-        headers: {
-          'Content-Type': 'application/json',
-        },
-
-        body: JSON.stringify(webhookPayload),
+    if (makeWebhookUrl) {
+      try {
+        const res = await fetch(makeWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(webhookPayload),
+        })
+        deliveryQueued = res.ok
+        if (!res.ok) {
+          console.error('Make webhook failed:', res.status, await res.text())
+        }
+      } catch (err) {
+        console.error('Make webhook error:', err)
       }
-    )
-
-    const makeResponseText =
-      await makeResponse.text()
-
-    console.log(
-      'Make response:',
-      makeResponse.status,
-      makeResponseText
-    )
-
-    if (!makeResponse.ok) {
-      console.error(
-        'Make webhook failed:',
-        makeResponseText
-      )
-
-      throw new Error(
-        'Payment verified, but automation could not be triggered.'
-      )
+    } else {
+      console.error('MAKE_PAYMENT_WEBHOOK_URL is not configured. Order:', orderId)
     }
 
-    // ----------------------------------------
-    // 6. Success
-    // ----------------------------------------
-
-    return NextResponse.json({
-      success: true,
-      message: 'Payment verified successfully.',
-      orderId: razorpay_order_id,
-    })
+    return NextResponse.json({ success: true, orderId, deliveryQueued })
   } catch (error) {
-    console.error(
-      'PAYMENT VERIFICATION ERROR:',
-      error
-    )
-
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Payment verification failed.',
-      },
-      { status: 500 }
-    )
+    console.error('PAYMENT VERIFICATION ERROR:', error)
+    return fail('Payment verification failed. If money was taken, contact us with your payment ID.', 500)
   }
 }

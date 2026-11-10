@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[#fafafa] text-gray-900">
+    <main className="min-h-screen bg-cream text-gray-900">
       {/* Header */}
       <section className="border-b border-gray-200 bg-white px-6 py-20">
         <div className="mx-auto max-w-4xl">
@@ -15,7 +15,7 @@ export default function TermsPage() {
           </h1>
 
           <p className="mt-5 text-lg leading-8 text-gray-600">
-            These Terms & Conditions govern your use of the LearnWithZavio
+            These Terms & Conditions govern your use of the NudgePops
             website and your purchase and use of our digital products.
           </p>
 
@@ -32,14 +32,14 @@ export default function TermsPage() {
           {/* 1 */}
           <section className="rounded-3xl border border-gray-200 bg-white p-7 shadow-sm sm:p-9">
             <h2 className="text-2xl font-semibold">
-              1. About LearnWithZavio
+              1. About NudgePops
             </h2>
 
             <p className="mt-4 leading-7 text-gray-600">
-              LearnWithZavio provides digital educational products, including
+              NudgePops provides digital educational products, including
               ebooks, guides, and other digital resources relating to topics
-              such as artificial intelligence, technology, productivity, and
-              digital skills.
+              such as money psychology, spending habits and everyday
+              personal finance.
             </p>
 
             <p className="mt-4 leading-7 text-gray-600">
@@ -55,7 +55,7 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-4 leading-7 text-gray-600">
-              All products sold through LearnWithZavio are digital products
+              All products sold through NudgePops are digital products
               unless explicitly stated otherwise.
             </p>
 
@@ -160,7 +160,7 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-4 leading-7 text-gray-600">
-              The LearnWithZavio name, branding, website content, ebooks,
+              The NudgePops name, branding, website content, ebooks,
               written materials, graphics, and other original materials are
               protected by applicable intellectual property laws.
             </p>
