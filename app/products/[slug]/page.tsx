@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, BookOpen, Check, FileText, Mail, ShieldCheck } from 'lucide-react'
 import PreviewGallery from '@/components/PreviewGallery'
 import Faq from '@/components/Faq'
-import { BOOKS, getBook } from '@/lib/catalog'
+import { getBook, nextBook } from '@/lib/catalog'
 import { getVisitorCountry } from '@/lib/visitor'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -27,7 +27,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const country = await getVisitorCountry()
   const isIntl = country !== '' && country !== 'IN'
   const mainPrice = isIntl ? `$${book.priceUsd}` : `₹${book.priceInr}`
-  const other = BOOKS.find((b) => b.slug !== book.slug)
+  const other = nextBook(book.slug)
   const buyHref = `/checkout?book=${book.slug}`
 
   return (

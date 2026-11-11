@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, Inbox, MailSearch, MessageCircle } from 'lucide-react'
 import Logo from '@/components/Logo'
-import { BOOKS, getBook } from '@/lib/catalog'
+import { getBook, nextBook } from '@/lib/catalog'
 import { getRazorpay } from '@/lib/razorpay'
 import { SITE } from '@/lib/site'
 
@@ -45,7 +45,7 @@ export default async function PaymentSuccessPage({
   const { order_id } = await searchParams
   const order = await getOrder(order_id)
   const book = getBook(order?.slug)
-  const other = BOOKS.find((b) => b.slug !== book?.slug)
+  const other = nextBook(book?.slug)
   const firstName = order?.name?.split(' ')[0]
   const masked = maskEmail(order?.email)
   const amount =

@@ -143,7 +143,69 @@ export const BOOKS: Book[] = [
     priceInr: PRICE_INR,
     priceUsd: PRICE_USD,
   },
+  {
+    slug: 'the-10-days-that-decide-your-returns',
+    number: 3,
+    series: 'The Money Brain series',
+    title: 'The 10 Days That Decide Your Returns',
+    subtitle: 'The AI Bubble Panic Guide',
+    hook: 'A panic-proof plan for when everyone is screaming “bubble”.',
+    description:
+      'Missing just the 10 best days in 20 years cut a $10,000 S&P 500 investment from $71,750 to $32,871, and the Nifty 50 tells the same story. Those days usually arrive right after the worst ones, exactly when panic-sellers are sitting out. This guide won’t predict whether AI stocks are a bubble. It gives you a plan that works either way: Safe, Spread, Steady, with worksheets, a crash playbook and a 30-day action plan.',
+    cover: '/books/ten-days-p1.jpg',
+    previews: [
+      { src: '/books/ten-days-p4.jpg', caption: 'The 10 days that decide your returns' },
+      { src: '/books/ten-days-p8.jpg', caption: 'The plan: Safe, Spread, Steady' },
+      { src: '/books/ten-days-p14.jpg', caption: 'The Panic Protocol and crash playbook' },
+    ],
+    pages: 18,
+    format: 'PDF, phone & laptop friendly',
+    accent: '#FFD45C',
+    accentSoft: '#FFF3CC',
+    highlights: [
+      'Why missing 10 days can halve 20 years of returns',
+      'What the dot-com bust and today’s AI concentration really tell you',
+      'Safe · Spread · Steady: a plan that works bubble or not',
+      'The 72-hour rule and a crash playbook for every size of drop',
+    ],
+    includes: [
+      { title: 'Safety Number worksheet', text: 'Size the emergency fund that stops forced selling.' },
+      { title: 'Portfolio X-ray', text: 'See how much AI and big tech you really own.' },
+      { title: 'Panic Protocol', text: 'The 72-hour rule, a pre-sell checklist and a crash playbook.' },
+      { title: '30-day action plan', text: 'Money Rules page and a cut-out wallet card.' },
+    ],
+    forYouIf: [
+      'An “AI bubble” headline made you want to sell everything',
+      'You own S&P 500, Nasdaq or Nifty funds and aren’t sure how concentrated they are',
+      'You’ve sold in a dip before and bought back higher',
+      'You have cash waiting for “the crash” before you invest',
+    ],
+    chapters: [
+      { n: '01', title: 'Why your thumb wants to hit SELL', blurb: 'The panic loop and the four brain traps behind it.' },
+      { n: '02', title: 'The 10 days that decide your returns', blurb: 'S&P 500 and Nifty 50 data, and where the best days hide.' },
+      { n: '03', title: 'Drops are the price of admission', blurb: 'Normal intra-year falls, and your personal drop budget.' },
+      { n: '04', title: 'Bubble or not? What history actually says', blurb: 'The dot-com bust and today’s record concentration.' },
+      { n: '05', title: 'The plan: Safe · Spread · Steady', blurb: 'Three moves, with worksheets for your real numbers.' },
+      { n: '06', title: 'The Panic Protocol', blurb: 'The 72-hour rule and a crash playbook.' },
+      { n: '07', title: '5 myths that cost real money', blurb: 'From “sell now, buy back lower” to “index funds can’t hurt me”.' },
+      { n: '08', title: 'Your Money Rules', blurb: 'A one-page promise and a 30-day action plan.' },
+    ],
+    research: [
+      { stat: '−54%', label: 'less money after missing the 10 best days in 20 years', source: 'J.P. Morgan Asset Management, S&P 500 2005–2024' },
+      { stat: '7 of 10', label: 'best days landed within two weeks of the worst days', source: 'J.P. Morgan (S&P 500); FundsIndia (Nifty 50)' },
+      { stat: '1.2 pts', label: 'a year lost by the average investor to bad timing', source: 'Morningstar, Mind the Gap (2025)' },
+    ],
+    priceInr: PRICE_INR,
+    priceUsd: PRICE_USD,
+  },
 ]
+
+/** The next book in the series after this one, wrapping around. */
+export function nextBook(slug: string | null | undefined) {
+  const i = BOOKS.findIndex((b) => b.slug === slug)
+  if (BOOKS.length < 2) return undefined
+  return BOOKS[(i + 1) % BOOKS.length]
+}
 
 export function getBook(slug: string | null | undefined) {
   if (!slug) return undefined
