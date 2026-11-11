@@ -198,6 +198,61 @@ export const BOOKS: Book[] = [
     priceInr: PRICE_INR,
     priceUsd: PRICE_USD,
   },
+  {
+    slug: 'the-impulse-proof-system',
+    number: 4,
+    series: 'The Money Brain series',
+    title: 'The Impulse-Proof System',
+    subtitle: 'A Practical Guide to Sale-Season Spending',
+    hook: 'You “saved” 40%? No, you spent 60%. Beat the sale-season traps.',
+    description:
+      'When ₹5,000 headphones are 40% off, the sale didn’t save you ₹2,000 unless you were buying anyway. It cost you ₹3,000. This guide shows how timers, “only 3 left” badges, crossed-out prices and pay-later checkouts push you into purchases you never planned, then gives you a five-step system to beat them: list first, the 24-hour rule, the real-price test, friction settings and a guilt-free fun fund. Set it up in about 20 minutes, before your next Black Friday, Diwali or 11.11 sale.',
+    cover: '/books/impulse-proof-p1.jpg',
+    previews: [
+      { src: '/books/impulse-proof-p5.jpg', caption: 'The 60% you actually spend' },
+      { src: '/books/impulse-proof-p13.jpg', caption: 'The Impulse-Proof System in 5 steps' },
+      { src: '/books/impulse-proof-p15.jpg', caption: 'Step 2: the 24-hour rule' },
+    ],
+    pages: 29,
+    format: 'PDF, phone & laptop friendly',
+    accent: '#3DEDB0',
+    accentSoft: '#D8FBEC',
+    highlights: [
+      'Why “40% off” usually means “60% spent”',
+      '8 sale tricks your brain falls for, each with a counter-move',
+      'A 5-step system: list first, wait 24 hours, check the real price',
+      'The true cost of “no-cost EMI” and buy now, pay later',
+    ],
+    includes: [
+      { title: 'Pre-sale checklist', text: 'What to do two days before, during and after a sale.' },
+      { title: 'Cart Parking Lot', text: 'Park unplanned buys, re-rate the urge, decide calmly.' },
+      { title: 'Real-price calculator', text: 'Hours of work, cost per use and price history.' },
+      { title: '30-day challenge', text: 'One small task a day, plus scripts and a quick reference.' },
+    ],
+    forYouIf: [
+      'Sale banners and countdown timers get you every time',
+      'You’ve bought something “because it was on sale” and never used it',
+      'You add extra items just to hit free delivery',
+      'Black Friday, Diwali or 11.11 is coming and you want a plan',
+    ],
+    chapters: [
+      { n: '01', title: 'The 60% you actually spend', blurb: 'Real saving vs the “you save” number, and the sale matrix.' },
+      { n: '02', title: 'What the price data says about big sales', blurb: 'Most “deals” were matched or beaten at other times.' },
+      { n: '03', title: 'Eight tricks your brain falls for', blurb: 'Anchors, timers, scarcity, decoys and more, with counter-moves.' },
+      { n: '04', title: 'Dark patterns are now regulated', blurb: 'India’s 13 banned practices and how to complain.' },
+      { n: '05', title: 'List first and the 24-hour rule', blurb: 'Decide before you see prices; make unplanned buys wait.' },
+      { n: '06', title: 'Real price, friction and the fun fund', blurb: 'Three checks, ten settings and a guilt-free budget.' },
+      { n: '07', title: 'The true-cost check', blurb: '“No-cost EMI”, pay later, returns and the after-sale review.' },
+      { n: '08', title: 'Your toolkit', blurb: 'Checklists, worksheets, scripts and a 30-day challenge.' },
+    ],
+    research: [
+      { stat: '2%', label: 'of discounted products were cheapest on Black Friday itself', source: 'Which? (2023)' },
+      { stat: '1,818', label: 'dark patterns found across 1,254 shopping sites', source: 'Mathur et al., Princeton (2019)' },
+      { stat: '$21.3B', label: 'of U.S. holiday spending expected through buy now, pay later', source: 'Adobe forecast (2026)' },
+    ],
+    priceInr: PRICE_INR,
+    priceUsd: PRICE_USD,
+  },
 ]
 
 /** The next book in the series after this one, wrapping around. */

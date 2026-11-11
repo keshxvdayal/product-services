@@ -16,7 +16,11 @@ values
   ('The 10 Days That Decide Your Returns',
    'the-10-days-that-decide-your-returns',
    'The AI Bubble Panic Guide: a panic-proof plan for when everyone is screaming "bubble".',
-   299, 20, '/books/ten-days-p1.jpg', true)
+   299, 20, '/books/ten-days-p1.jpg', true),
+  ('The Impulse-Proof System',
+   'the-impulse-proof-system',
+   'A Practical Guide to Sale-Season Spending: stop "saving" money you were never going to spend.',
+   299, 20, '/books/impulse-proof-p1.jpg', true)
 on conflict (slug) do update
   set title = excluded.title,
       description = excluded.description,

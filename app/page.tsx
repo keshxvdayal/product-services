@@ -132,10 +132,10 @@ export default async function HomePage() {
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-bold uppercase tracking-[0.18em] text-grape">The Money Brain series</p>
             <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-ink sm:text-5xl">
-              Three guides. Three money traps fixed.
+              Four guides. Four money traps fixed.
             </h2>
             <p className="mt-4 text-lg text-ink/70">
-              One stops tap-and-forget spending, one makes your next raise count, and one keeps you invested when everyone screams “bubble”.
+              Stop tap-and-forget spending, make your next raise count, stay invested when everyone screams “bubble”, and beat the sale-season traps.
             </p>
           </div>
 
